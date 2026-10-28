@@ -2,7 +2,7 @@
 
 Base: LibreChat **v0.8.8** (tag upstream). Customizações ficam só em:
 - `Dockerfile`: bloco "Guimarães Aranha: cores da marca" (build args `REACT_APP_THEME_*`).
-- `deploy/coolify-compose.yml`: stack do Coolify (api + mongodb + meilisearch + vectordb + rag_api).
+- `docker-compose.coolify.yml` (raiz): stack do Coolify (api + mongodb + meilisearch + vectordb + rag_api).
 - `deploy/librechat.yaml`: configuração (montada via `CONFIG_PATH`).
 
 ## Atualizar a partir do upstream

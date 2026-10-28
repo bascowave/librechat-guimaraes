@@ -24,8 +24,9 @@ endpoints:
       headers:
         x-librechat-body-parentmessageid: '{{LIBRECHAT_BODY_PARENTMESSAGEID}}'
       models:
-        default: ['anthropic/claude-sonnet-4.5', 'openai/gpt-4o-mini']
-        fetch: true
+        # 1º da lista = padrão. Piloto: Haiku (dia a dia) e GPT-6.1 Terra (análise).
+        default: ['anthropic/claude-haiku-5.5', 'openai/gpt-6.1-terra']
+        fetch: false
       titleConvo: true
       titleModel: 'current_model'
       dropParams: ['stop']

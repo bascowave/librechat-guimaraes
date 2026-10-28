@@ -1,0 +1,102 @@
+# Deploy Coolify — LibreChat Guimarães Aranha
+# Build pack: Docker Compose, arquivo /deploy/coolify-compose.yml
+# Segredos internos gerados pelo Coolify (SERVICE_*); chaves de IA ficam em Environment Variables.
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    depends_on:
+      - mongodb
+      - rag_api
+    restart: always
+    environment:
+      - SERVICE_URL_API_3080
+      - HOST=0.0.0.0
+      - PORT=3080
+      - NODE_ENV=production
+      - DOMAIN_CLIENT=${SERVICE_URL_API}
+      - DOMAIN_SERVER=${SERVICE_URL_API}
+      - TRUST_PROXY=1
+      - NO_INDEX=true
+      - CONFIG_PATH=/app/deploy/librechat.yaml
+      - MONGO_URI=mongodb://mongodb:27017/LibreChat
+      - SEARCH=true
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MASTER_KEY=${SERVICE_PASSWORD_64_MEILI}
+      - RAG_PORT=8000
+      - RAG_API_URL=http://rag_api:8000
+      - CREDS_KEY=${SERVICE_HEX_64_CREDSKEY}
+      - CREDS_IV=${SERVICE_HEX_32_CREDSIV}
+      - JWT_SECRET=${SERVICE_PASSWORD_64_JWT}
+      - JWT_REFRESH_SECRET=${SERVICE_PASSWORD_64_JWTREFRESH}
+      - ALLOW_EMAIL_LOGIN=true
+      - ALLOW_REGISTRATION=false
+      - ALLOW_SOCIAL_LOGIN=false
+      - ALLOW_SOCIAL_REGISTRATION=false
+      - ALLOW_PASSWORD_RESET=false
+      - ALLOW_UNVERIFIED_EMAIL_LOGIN=true
+      - APP_TITLE=${APP_TITLE:-Guimarães Aranha IA}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - ENDPOINTS=${ENDPOINTS:-openAI,anthropic,agents}
+    volumes:
+      - librechat-images:/app/client/public/images
+      - librechat-uploads:/app/uploads
+      - librechat-logs:/app/api/logs
+      - librechat-data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  mongodb:
+    image: mongo:8.0.20
+    restart: always
+    command: mongod --noauth
+    volumes:
+      - mongo-data:/data/db
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.35.1
+    restart: always
+    environment:
+      - MEILI_MASTER_KEY=${SERVICE_PASSWORD_64_MEILI}
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - meili-data:/meili_data
+
+  vectordb:
+    image: pgvector/pgvector:0.8.0-pg15-trixie
+    restart: always
+    environment:
+      - POSTGRES_DB=librechat_rag
+      - POSTGRES_USER=${SERVICE_USER_PG}
+      - POSTGRES_PASSWORD=${SERVICE_PASSWORD_PG}
+    volumes:
+      - pgvector-data:/var/lib/postgresql/data
+
+  rag_api:
+    image: registry.librechat.ai/librechat-ai/librechat-rag-api-dev-lite:latest
+    restart: always
+    depends_on:
+      - vectordb
+    environment:
+      - DB_HOST=vectordb
+      - RAG_PORT=8000
+      - POSTGRES_DB=librechat_rag
+      - POSTGRES_USER=${SERVICE_USER_PG}
+      - POSTGRES_PASSWORD=${SERVICE_PASSWORD_PG}
+      - RAG_OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+volumes:
+  librechat-images:
+  librechat-uploads:
+  librechat-logs:
+  librechat-data:
+  mongo-data:
+  meili-data:
+  pgvector-data:

@@ -16,5 +16,5 @@ Repositório privado (não é fork: fork de repo público não pode ser privado)
 
 ## Variáveis no Coolify
 Geradas automaticamente: `SERVICE_*` (Mongo sem porta exposta, Meili, JWT, CREDS, Postgres).
-Pendentes (preencher em Environment Variables): `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` (RAG usa a chave OpenAI para embeddings).
+Pendentes: `OPENROUTER_KEY` (provedor único, endpoint custom em deploy/librechat.yaml); `RAG_OPENAI_API_KEY` para embeddings do RAG (OpenRouter não cobre embeddings no RAG API lite — a definir).
 Cadastro público desativado (`ALLOW_REGISTRATION=false`). Usuários: `npm run create-user` no container `api`.

@@ -38,9 +38,8 @@ services:
       - ALLOW_PASSWORD_RESET=false
       - ALLOW_UNVERIFIED_EMAIL_LOGIN=true
       - APP_TITLE=${APP_TITLE:-Guimarães Aranha IA}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-      - ENDPOINTS=${ENDPOINTS:-openAI,anthropic,agents}
+      - OPENROUTER_KEY=${OPENROUTER_KEY:-}
+      - ENDPOINTS=${ENDPOINTS:-custom,agents}
     volumes:
       - librechat-images:/app/client/public/images
       - librechat-uploads:/app/uploads
@@ -90,7 +89,7 @@ services:
       - POSTGRES_DB=librechat_rag
       - POSTGRES_USER=${SERVICE_USER_PG}
       - POSTGRES_PASSWORD=${SERVICE_PASSWORD_PG}
-      - RAG_OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - RAG_OPENAI_API_KEY=${RAG_OPENAI_API_KEY:-}
 
 volumes:
   librechat-images:

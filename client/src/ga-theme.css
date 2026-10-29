@@ -1,0 +1,164 @@
+/* GA: tema quente do chat (creme / cinza quente, acento terracota, títulos em serifa).
+ *
+ * Camada única de sobrescrita sobre os tokens de `style.css`: só redefine as variáveis
+ * semânticas (triplets `R G B`) e alguns detalhes de forma. Para reverter ao visual
+ * padrão do LibreChat, basta remover o import deste arquivo em `main.jsx`.
+ *
+ * Os modos de alto contraste e temas via env/localStorage continuam vencendo, porque o
+ * ThemeProvider entrega os tokens deles como propriedades inline em <html>.
+ *
+ * Contrastes medidos (WCAG 2.x):
+ * - claro: texto #141413 sobre #faf9f5 ≈ 17.5:1; terciário #64635d sobre a sidebar ≈ 5.5:1
+ *   e sobre o hover #eae8df ≈ 4.9:1
+ * - escuro: texto #f5f4ed sobre #262624 ≈ 13.7:1; terciário #acaaa2 sobre #30302e ≈ 5.7:1
+ *   e sobre o hover #3d3d3a ≈ 4.7:1
+ * - acento como texto: #ad5332 sobre #faf9f5 ≈ 4.9:1; #d97757 sobre #30302e ≈ 4.8:1
+ * - botões de ação (surface-submit #ad5332) com texto branco ≈ 5.2:1
+ * - botão enviar #c96442 com ícone branco ≈ 3.9:1, hover #b85636 ≈ 4.8:1
+ *   (componente não-textual, mínimo 3:1)
+ */
+
+:root {
+  --ga-font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+}
+
+html {
+  --presentation: 250 249 245;
+  --text-primary: 20 20 19;
+  --text-secondary: 61 61 58;
+  --text-secondary-alt: 100 99 93;
+  --text-tertiary: 100 99 93;
+  --text-muted: 100 99 93;
+  --accent-primary: 173 83 50;
+  --accent-primary-hover: 143 66 40;
+  --ring-primary: 100 99 93;
+  --header-primary: 250 249 245;
+  --header-hover: 240 238 230;
+  --header-button-hover: 240 238 230;
+  --surface-active: 240 238 230;
+  --surface-active-alt: 232 230 220;
+  --surface-hover: 234 232 223;
+  --surface-hover-alt: 222 220 209;
+  --surface-composer-hover: 234 232 223;
+  --surface-primary: 250 249 245;
+  --surface-primary-alt: 245 244 237;
+  --surface-primary-contrast: 240 238 230;
+  --surface-secondary: 245 244 237;
+  --surface-secondary-alt: 232 230 220;
+  --surface-tertiary: 240 238 230;
+  --surface-tertiary-alt: 255 255 255;
+  --surface-dialog: 250 249 245;
+  --surface-submit: 173 83 50;
+  --surface-submit-hover: 143 66 40;
+  --surface-chat: 255 255 255;
+  --surface-inverted: 38 38 36;
+  --surface-inverted-hover: 61 61 58;
+  --border-light: 232 230 220;
+  --border-medium: 222 220 209;
+  --border-medium-alt: 222 220 209;
+  --border-heavy: 176 173 159;
+  --border-xheavy: 135 134 127;
+  --syntax-text: 20 20 19;
+  --radius: 0.75rem;
+  --ga-send: 201 100 66;
+  --ga-send-hover: 184 86 54;
+  --ga-composer-shadow: 0 0.25rem 1.25rem rgb(20 20 19 / 0.05);
+  --ga-composer-shadow-focus: 0 0.25rem 1.5rem rgb(20 20 19 / 0.09);
+}
+
+.dark {
+  --presentation: 38 38 36;
+  --text-primary: 245 244 237;
+  --text-secondary: 194 192 182;
+  --text-secondary-alt: 172 170 162;
+  --text-tertiary: 172 170 162;
+  --text-muted: 172 170 162;
+  --accent-primary: 217 119 87;
+  --accent-primary-hover: 232 149 122;
+  --ring-primary: 172 170 162;
+  --header-primary: 48 48 46;
+  --header-hover: 61 61 58;
+  --header-button-hover: 48 48 46;
+  --surface-active: 74 73 67;
+  --surface-active-alt: 48 48 46;
+  --surface-hover: 61 61 58;
+  --surface-hover-alt: 72 72 68;
+  --surface-composer-hover: 72 72 68;
+  --surface-primary: 31 30 29;
+  --surface-primary-alt: 31 30 29;
+  --surface-primary-contrast: 26 25 24;
+  --surface-secondary: 38 38 36;
+  --surface-secondary-alt: 48 48 46;
+  --surface-tertiary: 48 48 46;
+  --surface-tertiary-alt: 48 48 46;
+  --surface-dialog: 31 30 29;
+  --surface-submit: 173 83 50;
+  --surface-submit-hover: 150 72 43;
+  --surface-chat: 48 48 46;
+  --surface-inverted: 245 244 237;
+  --surface-inverted-hover: 232 230 220;
+  --text-inverted: 31 30 29;
+  --border-light: 62 62 56;
+  --border-medium: 74 73 67;
+  --border-medium-alt: 74 73 67;
+  --border-heavy: 107 106 98;
+  --border-xheavy: 145 143 133;
+  --ga-send: 201 100 66;
+  --ga-send-hover: 184 86 54;
+  --ga-composer-shadow: 0 0.25rem 1.25rem rgb(0 0 0 / 0.22);
+  --ga-composer-shadow-focus: 0 0.25rem 1.5rem rgb(0 0 0 / 0.32);
+}
+
+/* `style.css` fixa o fundo da página escura em #171717/#212121. */
+html,
+body,
+.dark body {
+  background-color: rgb(var(--presentation));
+}
+
+/* Títulos em serifa; o corpo continua sans. */
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  font-family: var(--ga-font-serif);
+  font-weight: 500;
+}
+
+/* Caixa de mensagem: cantos de 20px, sombra suave e quente. Abaixo de `sm` ela encosta
+   no rodapé da tela e mantém só os cantos de cima. */
+html:not(.high-contrast) [data-testid='composer-surface'] {
+  border-top-left-radius: 1.25rem;
+  border-top-right-radius: 1.25rem;
+  box-shadow: var(--ga-composer-shadow);
+}
+html:not(.high-contrast) [data-testid='composer-surface']:focus-within {
+  box-shadow: var(--ga-composer-shadow-focus);
+}
+@media (min-width: 640px) {
+  html:not(.high-contrast) [data-testid='composer-surface'] {
+    border-radius: 1.25rem;
+  }
+}
+
+/* Botão enviar / parar em terracota com ícone branco. */
+html:not(.high-contrast) #send-button,
+html:not(.high-contrast) #during-run-send-button,
+html:not(.high-contrast) [data-testid='stop-generation-button'] {
+  border-radius: 0.625rem;
+  background-color: rgb(var(--ga-send));
+  color: rgb(255 255 255);
+}
+html:not(.high-contrast) #send-button svg,
+html:not(.high-contrast) #during-run-send-button svg,
+html:not(.high-contrast) [data-testid='stop-generation-button'] svg {
+  color: rgb(255 255 255);
+}
+html:not(.high-contrast) #send-button:hover:not(:disabled),
+html:not(.high-contrast) #during-run-send-button:hover:not(:disabled),
+html:not(.high-contrast) [data-testid='stop-generation-button']:hover:not(:disabled) {
+  background-color: rgb(var(--ga-send-hover));
+}
+/* O padrão apaga o botão desabilitado a 10% de opacidade, o que some no creme. */
+html:not(.high-contrast) #send-button:disabled {
+  opacity: 0.35;
+}

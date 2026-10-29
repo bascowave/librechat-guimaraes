@@ -17,6 +17,7 @@ module.exports = {
   theme: {
     fontFamily: {
       sans: ['Inter', 'sans-serif'],
+      serif: ['ui-serif', 'Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
       /**
        * Roboto Mono is self-hosted (the `@font-face` block in `style.css`), so code
        * renders the same on every platform and carries real bold and italic faces

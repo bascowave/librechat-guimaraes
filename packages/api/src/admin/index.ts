@@ -1,3 +1,4 @@
+export { createGAEmailGuard, createGAAdminHandlers } from './ga';
 export { createAdminConfigHandlers } from './config';
 export { createAdminLangfuseHandlers } from './langfuse';
 export { createAdminGrantsHandlers } from './grants';

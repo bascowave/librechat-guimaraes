@@ -367,6 +367,8 @@ const startServer = async () => {
   }
 
   app.get('/index.html', sendIndexHtml);
+  app.get('/ga-admin', (req, res) => res.redirect('/ga-admin/index.html'));
+  app.use('/ga-admin', staticCache(path.join(appConfig.paths.dist, 'ga-admin'), { noCache: true }));
   app.use(staticCache(appConfig.paths.dist));
   app.use(staticCache(appConfig.paths.fonts));
   app.use(staticCache(appConfig.paths.assets));
@@ -403,6 +405,7 @@ const startServer = async () => {
   /* API Endpoints */
   app.use('/api/auth', preAuthTenantMiddleware, routes.auth);
   app.use('/api/insights', routes.insights);
+  app.use('/api/ga-admin', routes.gaAdmin);
   app.use('/api/admin', routes.adminAuth);
   app.use('/api/admin/config', routes.adminConfig);
   app.use('/api/admin/code-environments', routes.adminCodeEnvironments);

@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Painel GA</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, sans-serif;
+      }
+      body {
+        max-width: 80rem;
+        margin: auto;
+        padding: 1.5rem;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-block: 1rem;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-block: 1rem;
+      }
+      td,
+      th {
+        text-align: left;
+        padding: 0.5rem;
+        border-bottom: 1px solid;
+      }
+      input,
+      textarea,
+      button {
+        font: inherit;
+        padding: 0.4rem;
+      }
+      input[type='text'],
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+      }
+      .scroll {
+        overflow-x: auto;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Painel administrativo GA</h1>
+    <p><a href="/">Voltar ao chat</a></p>
+    <p id="status" role="status" aria-live="polite">Carregando sessão…</p>
+    <button id="retry" type="button" hidden>Tentar novamente</button>
+    <main id="panel" hidden>
+      <nav aria-label="Seções do painel">
+        <button type="button" data-page="mapping" aria-current="page">Mapeamento GA-N</button>
+        <button type="button" data-page="users">Usuários</button>
+        <button type="button" data-page="usage">Uso</button>
+        <button type="button" data-page="settings">Configurações</button>
+      </nav>
+      <section id="mapping">
+        <h2>Mapeamento GA-N</h2>
+        <p>Aplicado aos roles USER e ADMIN em até 60 s. Recarregue o chat após esse prazo.</p>
+        <p>
+          O nome GA-N é uma apresentação; os identificadores reais continuam disponíveis nas APIs do
+          chat.
+        </p>
+        <form id="models-form">
+          <div class="scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Nome</th>
+                  <th scope="col">Rótulo</th>
+                  <th scope="col">Modelo real</th>
+                  <th scope="col">Padrão</th>
+                  <th scope="col">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="models"></tbody>
+            </table>
+          </div>
+          <button id="add" type="button">Adicionar linha</button>
+          <button type="submit">Salvar mapeamento</button>
+        </form>
+      </section>
+      <section id="users" hidden>
+        <h2>Usuários</h2>
+        <div id="users-table" class="scroll"></div>
+        <button id="previous" type="button">Anterior</button>
+        <button id="next" type="button">Próxima</button>
+        <p id="pagination"></p>
+      </section>
+      <section id="usage" hidden>
+        <h2>Uso</h2>
+        <form id="usage-form">
+          <label
+            >Período em dias <input id="days" type="number" min="1" step="1" value="30" required
+          /></label>
+          <button type="submit">Atualizar uso</button>
+        </form>
+        <p>
+          Valores rawAmount e tokenValue são somas das transações registradas, não valores em reais.
+          Sem transações registradas, o consumo não aparece aqui.
+        </p>
+        <h3>Totais gerais</h3>
+        <div id="summary-table" class="scroll"></div>
+        <h3>Transações por usuário, modelo e tipo de token</h3>
+        <div id="usage-table" class="scroll"></div>
+        <h3>Mensagens enviadas por usuário no período</h3>
+        <div id="messages-table" class="scroll"></div>
+      </section>
+      <section id="settings" hidden>
+        <h2>Configurações</h2>
+        <form id="settings-form">
+          <label for="welcome">Mensagem de boas-vindas</label>
+          <textarea id="welcome" rows="4"></textarea>
+          <button type="submit">Salvar boas-vindas</button>
+        </form>
+        <p>Aplicado aos roles USER e ADMIN em até 60 s.</p>
+        <p>
+          ALLOW_REGISTRATION: <output id="registration"></output>. Somente leitura: variável de
+          ambiente, alterada apenas por redeploy.
+        </p>
+      </section>
+    </main>
+    <script>
+      'use strict';
+      const element = (id) => document.getElementById(id);
+      let token = '';
+      let base = {};
+      let offset = 0;
+      let ready = false;
+      let busy = false;
+      const limit = 50;
+      const originalSpecs = new WeakMap();
+
+      function status(message) {
+        element('status').textContent = message;
+      }
+      async function refresh() {
+        const response = await fetch('/api/auth/refresh', {
+          method: 'POST',
+          credentials: 'same-origin',
+        });
+        if (!response.ok) throw new Error('Faça login em /login primeiro');
+        const session = await response.json();
+        if (!session.token) throw new Error('Faça login em /login primeiro');
+        token = session.token;
+      }
+      async function api(path, options = {}, retried = false) {
+        const response = await fetch(path, {
+          ...options,
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        });
+        if (response.status === 401 && !retried) {
+          await refresh();
+          return api(path, options, true);
+        }
+        if (response.status === 404 && options.optional) return null;
+        if (!response.ok) {
+          if (response.status === 401) throw new Error('Faça login em /login primeiro');
+          if (response.status === 403)
+            throw new Error('Acesso negado. Verifique o e-mail e as permissões administrativas.');
+          throw new Error(
+            `Não foi possível concluir a operação (HTTP ${response.status}). Tente novamente.`,
+          );
+        }
+        return response.json();
+      }
+      async function run(action) {
+        if (busy) return;
+        busy = true;
+        element('retry').hidden = true;
+        document.querySelectorAll('button').forEach((button) => {
+          button.disabled = true;
+        });
+        status('Carregando…');
+        try {
+          await action();
+          status('Pronto.');
+        } catch (error) {
+          status(error.message);
+          element('retry').hidden = false;
+        } finally {
+          busy = false;
+          document.querySelectorAll('button').forEach((button) => {
+            button.disabled = false;
+          });
+          element('previous').disabled = offset === 0;
+          element('next').disabled = !hasNext;
+        }
+      }
+      function table(id, columns, rows) {
+        const container = element(id);
+        container.replaceChildren();
+        if (!rows.length) {
+          container.textContent = 'Nenhum registro no período.';
+          return;
+        }
+        const table = document.createElement('table');
+        const head = table.createTHead().insertRow();
+        columns.forEach(([label]) => {
+          const th = document.createElement('th');
+          th.scope = 'col';
+          th.textContent = label;
+          head.append(th);
+        });
+        const body = table.createTBody();
+        rows.forEach((row) => {
+          const tr = body.insertRow();
+          columns.forEach(([, key]) => {
+            tr.insertCell().textContent = String(row[key] ?? '');
+          });
+        });
+        container.append(table);
+      }
+      function addRow(spec) {
+        const row = element('models').insertRow();
+        originalSpecs.set(row, spec);
+        for (const [key, value] of [
+          ['name', spec.name],
+          ['label', spec.label],
+          ['model', spec.preset?.model],
+        ]) {
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = value ?? '';
+          input.required = true;
+          input.dataset.key = key;
+          input.setAttribute(
+            'aria-label',
+            `${{ name: 'Nome', label: 'Rótulo', model: 'Modelo real' }[key]} ${spec.name}`,
+          );
+          row.insertCell().append(input);
+        }
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'default-model';
+        radio.checked = !!spec.default;
+        radio.setAttribute('aria-label', `Usar ${spec.name} como padrão`);
+        row.insertCell().append(radio);
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = 'Remover';
+        remove.setAttribute('aria-label', `Remover ${spec.name}`);
+        remove.onclick = () => row.remove();
+        row.insertCell().append(remove);
+      }
+      async function roleConfig(role) {
+        const result = await api(`/api/admin/config/role/${encodeURIComponent(role)}`, {
+          optional: true,
+        });
+        if (result?.config?.isActive === false)
+          throw new Error(
+            `O override ${role} está inativo. Ative-o na administração antes de salvar.`,
+          );
+        return result?.config ?? { overrides: {}, priority: 10 };
+      }
+      async function saveRoles(change) {
+        const roles = ['USER', 'ADMIN'];
+        const configs = await Promise.all(roles.map(roleConfig));
+        // PUT substitui o documento inteiro; mantenha todas as outras seções e a prioridade.
+        for (let index = 0; index < roles.length; index++) {
+          const config = configs[index];
+          try {
+            await api(`/api/admin/config/role/${roles[index]}`, {
+              method: 'PUT',
+              body: JSON.stringify({
+                overrides: change(config.overrides ?? {}),
+                priority: config.priority ?? 10,
+              }),
+            });
+          } catch (error) {
+            throw new Error(
+              `${error.message} ${index ? 'USER já foi salvo; ADMIN não foi salvo. Tente novamente para aplicar aos dois.' : 'Nenhum role foi confirmado como salvo; recarregue para conferir.'}`,
+            );
+          }
+        }
+      }
+      let hasNext = false;
+      async function loadUsers() {
+        const data = await api(`/api/admin/users?limit=${limit}&offset=${offset}`);
+        hasNext = offset + data.users.length < data.total;
+        table(
+          'users-table',
+          [
+            ['Nome', 'name'],
+            ['E-mail', 'email'],
+            ['Role', 'role'],
+            ['Criado em', 'createdAt'],
+          ],
+          data.users,
+        );
+        element('pagination').textContent = `${data.total} usuários. Página ${offset / limit + 1}.`;
+      }
+      async function loadUsage() {
+        const days = element('days').value;
+        const [usage, summary] = await Promise.all([
+          api(`/api/ga-admin/usage?days=${encodeURIComponent(days)}`),
+          api('/api/ga-admin/summary'),
+        ]);
+        table(
+          'summary-table',
+          [
+            ['Usuários', 'users'],
+            ['Conversas', 'conversations'],
+            ['Mensagens', 'messages'],
+          ],
+          [summary],
+        );
+        const identity = [
+          ['E-mail', 'email'],
+          ['Nome', 'name'],
+          ['ID do usuário', 'user'],
+        ];
+        table(
+          'usage-table',
+          [
+            ...identity,
+            ['Modelo', 'model'],
+            ['Tipo', 'tokenType'],
+            ['rawAmount', 'rawAmount'],
+            ['tokenValue', 'tokenValue'],
+            ['Transações', 'count'],
+          ],
+          usage.transactions,
+        );
+        table('messages-table', [...identity, ['Mensagens', 'count']], usage.messages);
+      }
+      let currentPage = 'mapping';
+      async function showPage(page) {
+        currentPage = page;
+        for (const id of ['mapping', 'users', 'usage', 'settings'])
+          element(id).hidden = id !== page;
+        document.querySelectorAll('[data-page]').forEach((button) => {
+          if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
+          else button.removeAttribute('aria-current');
+        });
+        if (page === 'users') await loadUsers();
+        if (page === 'usage') await loadUsage();
+      }
+      async function initialize() {
+        await refresh();
+        // A checagem GA também impede exibir o painel a outros administradores.
+        const summary = await api('/api/ga-admin/summary');
+        const [result, user] = await Promise.all([
+          api('/api/admin/config/base'),
+          roleConfig('USER'),
+        ]);
+        base = result.config;
+        const specs = user.overrides?.modelSpecs ?? base.modelSpecs ?? base.config?.modelSpecs;
+        element('models').replaceChildren();
+        for (const spec of specs?.list ?? []) addRow(spec);
+        element('welcome').value =
+          user.overrides?.interface?.customWelcome ??
+          base.interfaceConfig?.customWelcome ??
+          base.config?.interface?.customWelcome ??
+          '';
+        element('registration').textContent = summary.allowRegistration ?? 'não definida';
+        element('panel').hidden = false;
+        ready = true;
+      }
+      document.querySelectorAll('[data-page]').forEach((button) => {
+        button.onclick = () => run(() => showPage(button.dataset.page));
+      });
+      element('add').onclick = () => {
+        const names = new Set(
+          [...element('models').rows].map((row) => row.querySelector('[data-key="name"]').value),
+        );
+        let number = 1;
+        while (names.has(`ga-${number}`)) number++;
+        addRow({
+          name: `ga-${number}`,
+          label: `Modelo GA-${number}`,
+          iconURL: '/assets/logo.svg',
+          preset: { endpoint: 'OpenRouter', model: '' },
+        });
+      };
+      element('models-form').onsubmit = (event) => {
+        event.preventDefault();
+        run(async () => {
+          const list = [...element('models').rows].map((row) => {
+            const values = Object.fromEntries(
+              [...row.querySelectorAll('[data-key]')].map((input) => [
+                input.dataset.key,
+                input.value.trim(),
+              ]),
+            );
+            const original = originalSpecs.get(row);
+            return {
+              ...original,
+              name: values.name,
+              label: values.label,
+              iconURL: '/assets/logo.svg',
+              default: row.querySelector('[type="radio"]').checked,
+              preset: { ...original.preset, endpoint: 'OpenRouter', model: values.model },
+            };
+          });
+          if (
+            !list.length ||
+            new Set(list.map((spec) => spec.name)).size !== list.length ||
+            list.some(
+              (spec) => !/^ga-[1-9]\d*$/.test(spec.name) || !spec.label || !spec.preset.model,
+            ) ||
+            !list.some((spec) => spec.default)
+          ) {
+            throw new Error('Informe nomes GA-N únicos, rótulos, modelos e um modelo padrão.');
+          }
+          await saveRoles((overrides) => ({
+            ...overrides,
+            modelSpecs: { enforce: true, prioritize: true, list },
+          }));
+        });
+      };
+      element('settings-form').onsubmit = (event) => {
+        event.preventDefault();
+        run(() =>
+          saveRoles((overrides) => ({
+            ...overrides,
+            interface: { ...overrides.interface, customWelcome: element('welcome').value },
+          })),
+        );
+      };
+      element('usage-form').onsubmit = (event) => {
+        event.preventDefault();
+        run(loadUsage);
+      };
+      element('previous').onclick = () =>
+        run(async () => {
+          offset = Math.max(0, offset - limit);
+          await loadUsers();
+        });
+      element('next').onclick = () =>
+        run(async () => {
+          offset += limit;
+          await loadUsers();
+        });
+      element('retry').onclick = () => run(() => (ready ? showPage(currentPage) : initialize()));
+      run(initialize);
+    </script>
+  </body>
+</html>

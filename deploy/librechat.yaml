@@ -3,6 +3,9 @@ version: 1.3.17
 cache: true
 
 interface:
+  modelSelect: false
+  presets: false
+  parameters: false
   customWelcome: 'Bem-vindo ao assistente de IA da Guimarães Aranha'
   # Retenção (LGPD): conversas temporárias expiram em 30 dias; ajustar depois.
   retentionMode: 'temporary'
@@ -15,7 +18,7 @@ balance:
   enabled: false
 
 # Provedor único: OpenRouter (endpoint OpenAI-compatível). Chave em OPENROUTER_KEY (Coolify).
-# Lista de modelos: edite `models.default` e deixe `fetch: false` para mostrar só os aprovados.
+# Modelos aprovados; o seletor usa os nomes públicos em modelSpecs.
 endpoints:
   custom:
     - name: 'OpenRouter'
@@ -30,4 +33,23 @@ endpoints:
       titleConvo: true
       titleModel: 'current_model'
       dropParams: ['stop']
-      modelDisplayLabel: 'OpenRouter'
+      modelDisplayLabel: 'GA'
+      iconURL: '/assets/logo.svg'
+
+modelSpecs:
+  enforce: true
+  prioritize: true
+  list:
+    - name: 'ga-1'
+      label: 'Modelo GA-1'
+      default: true
+      iconURL: '/assets/logo.svg'
+      preset:
+        endpoint: 'OpenRouter'
+        model: 'anthropic/claude-haiku-5.5'
+    - name: 'ga-2'
+      label: 'Modelo GA-2'
+      iconURL: '/assets/logo.svg'
+      preset:
+        endpoint: 'OpenRouter'
+        model: 'openai/gpt-6.1-terra'

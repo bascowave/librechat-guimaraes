@@ -1,11 +1,11 @@
 # Deploy Coolify — LibreChat Guimarães Aranha
-# Build pack: Docker Compose, arquivo /docker-compose.coolify.yml
+# Build pack: Docker Compose, arquivo /docker-compose.coolify.yml (api vem do GHCR)
 # Segredos internos gerados pelo Coolify (SERVICE_*); chaves de IA ficam em Environment Variables.
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Imagem gerada pelo GitHub Actions (.github/workflows/ga-image.yml); sem build na VPS.
+    image: ghcr.io/bascowave/librechat-guimaraes:latest
+    pull_policy: always
     depends_on:
       - mongodb
       - rag_api

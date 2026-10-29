@@ -4,141 +4,826 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Painel GA</title>
+    <title>GA Admin · Painel administrativo</title>
     <style>
       :root {
-        color-scheme: light dark;
-        font-family: system-ui, sans-serif;
+        color-scheme: dark;
+        --bg: #0d0d0d;
+        --surface: #171717;
+        --surface-raised: #212121;
+        --surface-hover: #292929;
+        --border: #363636;
+        --text: #f5f5f5;
+        --text-muted: #b4b4b4;
+        --accent: #56d6ae;
+        --primary: #0b7a5f;
+        --primary-hover: #09664f;
+        --on-primary: #ffffff;
+        --danger: #ffaaa5;
+        --danger-bg: #341c1c;
+        --accent-bg: #142d25;
+        --space-1: 0.25rem;
+        --space-2: 0.5rem;
+        --space-3: 0.75rem;
+        --space-4: 1rem;
+        --space-5: 1.5rem;
+        --space-6: 2rem;
+        --space-7: 3rem;
+        --font: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --text-sm: 0.8125rem;
+        --text-base: 0.9375rem;
+        --text-lg: 1.125rem;
+        --text-title: clamp(1.5rem, 3vw, 2rem);
+        --radius-sm: 0.5rem;
+        --radius: 0.875rem;
+        --shadow: 0 8px 28px #00000026;
+        --shadow-toast: 0 12px 40px #00000066;
+      }
+      * {
+        box-sizing: border-box;
       }
       body {
-        max-width: 80rem;
-        margin: auto;
-        padding: 1.5rem;
-      }
-      nav {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-block: 1rem;
-      }
-      table {
-        border-collapse: collapse;
-        width: 100%;
-        margin-block: 1rem;
-      }
-      td,
-      th {
-        text-align: left;
-        padding: 0.5rem;
-        border-bottom: 1px solid;
-      }
-      input,
-      textarea,
-      button {
-        font: inherit;
-        padding: 0.4rem;
-      }
-      input[type='text'],
-      textarea {
-        box-sizing: border-box;
-        width: 100%;
-      }
-      .scroll {
-        overflow-x: auto;
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: var(--text-base) / 1.6 var(--font);
       }
       [hidden] {
         display: none !important;
       }
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+      h1 {
+        font-size: var(--text-title);
+        line-height: 1.25;
+        letter-spacing: -0.035em;
+      }
+      h2 {
+        font-size: var(--text-lg);
+        letter-spacing: -0.02em;
+      }
+      h3 {
+        font-size: var(--text-base);
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 4px;
+      }
+      button,
+      input,
+      textarea {
+        font: inherit;
+      }
+      button,
+      .button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 44px;
+        padding: var(--space-2) var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+        color: var(--text);
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      button:hover,
+      .button:hover {
+        background: var(--surface-hover);
+      }
+      .primary {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: var(--on-primary);
+      }
+      .primary:hover {
+        background: var(--primary-hover);
+        border-color: var(--primary-hover);
+      }
+      .ghost {
+        background: transparent;
+        border-color: transparent;
+      }
+      .danger {
+        color: var(--danger);
+      }
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 4px;
+      }
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      input:not([type='radio']),
+      textarea {
+        width: 100%;
+        min-height: 44px;
+        padding: var(--space-3);
+        color: var(--text);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+      }
+      textarea {
+        resize: vertical;
+      }
+      input[type='radio'] {
+        accent-color: var(--accent);
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+      label {
+        display: block;
+        font-weight: 500;
+      }
+      label + textarea {
+        margin-top: var(--space-2);
+      }
+      .shell {
+        max-width: 1280px;
+        margin-inline: auto;
+        padding-inline: var(--space-6);
+      }
+      .header {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .header-inner,
+      .brand,
+      .account {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+      }
+      .header-inner {
+        min-height: 80px;
+        justify-content: space-between;
+        padding-block: var(--space-3);
+      }
+      .brand {
+        color: var(--text);
+        text-decoration: none;
+        font-size: var(--text-lg);
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .brand-mark {
+        display: grid;
+        place-items: center;
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-sm);
+        background: var(--primary);
+        color: var(--on-primary);
+        font-size: var(--text-sm);
+      }
+      .account {
+        min-width: 0;
+        font-size: var(--text-sm);
+      }
+      #account-name {
+        max-width: 240px;
+        overflow-wrap: anywhere;
+      }
+      .muted,
+      .description,
+      .hint {
+        color: var(--text-muted);
+      }
+      .intro {
+        padding-top: var(--space-7);
+      }
+      .eyebrow {
+        color: var(--accent);
+        font-size: var(--text-sm);
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+      }
+      .intro .description {
+        margin-top: var(--space-3);
+      }
+      .status-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        min-height: 58px;
+        margin-block: var(--space-4);
+        padding: var(--space-3) var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface);
+        color: var(--text-muted);
+      }
+      .status-bar[data-state='error'] {
+        color: var(--danger);
+        border-color: var(--danger);
+        background: var(--danger-bg);
+      }
+      #status {
+        flex: 1;
+        overflow-wrap: anywhere;
+      }
+      .spinner {
+        width: 18px;
+        height: 18px;
+        flex-shrink: 0;
+        border: 2px solid var(--border);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      nav {
+        display: flex;
+        gap: var(--space-2);
+        overflow-x: auto;
+        padding: var(--space-2);
+        margin-bottom: var(--space-5);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+      [role='tab'] {
+        flex-shrink: 0;
+        background: transparent;
+        border-color: transparent;
+        color: var(--text-muted);
+      }
+      [role='tab'][aria-selected='true'] {
+        background: var(--accent-bg);
+        color: var(--accent);
+      }
+      main {
+        padding-bottom: var(--space-7);
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: var(--space-5);
+        margin-bottom: var(--space-5);
+        min-width: 0;
+      }
+      .section-heading {
+        margin-bottom: var(--space-5);
+      }
+      .section-heading .description {
+        margin-top: var(--space-2);
+      }
+      .hint {
+        font-size: var(--text-sm);
+        margin-block: var(--space-4);
+      }
+      .notice {
+        padding: var(--space-4);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        background: var(--surface-raised);
+      }
+      .actions,
+      .pagination {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-top: var(--space-5);
+      }
+      .actions {
+        justify-content: flex-end;
+      }
+      .pagination #pagination {
+        margin-right: auto;
+        color: var(--text-muted);
+        font-size: var(--text-sm);
+      }
+      .scroll {
+        max-height: 480px;
+        overflow: auto;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        scrollbar-color: var(--border) var(--surface);
+      }
+      .scroll:focus-visible {
+        outline-offset: 2px;
+      }
+      table {
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        font-size: var(--text-sm);
+      }
+      td,
+      th {
+        text-align: left;
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: var(--surface-raised);
+        color: var(--text-muted);
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      tbody tr:nth-child(even) {
+        background: var(--surface-raised);
+      }
+      tbody tr:hover {
+        background: var(--surface-hover);
+      }
+      tbody tr:last-child td {
+        border-bottom: 0;
+      }
+      td {
+        white-space: nowrap;
+      }
+      #models-form table {
+        min-width: 760px;
+      }
+      #models-form input[type='text'] {
+        min-width: 140px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: var(--space-1) var(--space-2);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        background: var(--surface-raised);
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+      }
+      .badge-admin {
+        color: var(--accent);
+        border-color: var(--primary);
+        background: var(--accent-bg);
+      }
+      .empty {
+        padding: var(--space-7) var(--space-5);
+        text-align: center;
+        color: var(--text-muted);
+      }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-4);
+        margin-bottom: var(--space-5);
+      }
+      .kpi {
+        margin: 0;
+        padding: var(--space-5);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+      }
+      .kpi dt {
+        color: var(--text-muted);
+        font-size: var(--text-sm);
+      }
+      .kpi dd {
+        margin: var(--space-2) 0;
+        font-size: 1.75rem;
+        font-weight: 650;
+        line-height: 1.2;
+        letter-spacing: -0.03em;
+        overflow-wrap: anywhere;
+        font-variant-numeric: tabular-nums;
+      }
+      .kpi dd:last-child {
+        margin: 0;
+        font-size: var(--text-sm);
+        font-weight: 400;
+        line-height: 1.6;
+        letter-spacing: normal;
+      }
+      .kpi small {
+        color: var(--text-muted);
+      }
+      .filter {
+        display: flex;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-top: var(--space-4);
+      }
+      .filter input {
+        display: block;
+        margin-top: var(--space-2);
+        max-width: 160px;
+      }
+      #settings-form {
+        max-width: 720px;
+      }
+      #toasts {
+        position: fixed;
+        bottom: var(--space-5);
+        right: var(--space-5);
+        z-index: 10;
+        width: min(420px, calc(100% - 2 * var(--space-5)));
+      }
+      .toast {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        padding: var(--space-4);
+        margin-top: var(--space-2);
+        border: 1px solid var(--primary);
+        border-radius: var(--radius);
+        background: var(--accent-bg);
+        box-shadow: var(--shadow-toast);
+      }
+      .toast p {
+        flex: 1;
+      }
+      .toast[data-kind='error'] {
+        border-color: var(--danger);
+        background: var(--danger-bg);
+      }
+      .toast button {
+        flex-shrink: 0;
+        padding: var(--space-2);
+      }
+      .skeleton {
+        height: 120px;
+        background: var(--surface-raised);
+        border-radius: var(--radius);
+        animation: pulse 1.5s ease-in-out infinite alternate;
+      }
+      @keyframes pulse {
+        to {
+          opacity: 0.4;
+        }
+      }
+      @media (max-width: 640px) {
+        .shell {
+          padding-inline: var(--space-4);
+        }
+        .header-inner {
+          flex-wrap: wrap;
+          gap: var(--space-2);
+        }
+        .header-inner > .button {
+          margin-left: auto;
+        }
+        .account {
+          order: 3;
+          flex-basis: 100%;
+        }
+        #account-name {
+          max-width: none;
+        }
+        .intro {
+          padding-top: var(--space-6);
+        }
+        .card {
+          padding: var(--space-4);
+        }
+        .kpis {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: var(--space-2);
+        }
+        .kpi {
+          padding: var(--space-4);
+        }
+        .kpi dd {
+          font-size: 1.375rem;
+        }
+        .status-bar {
+          flex-wrap: wrap;
+        }
+        .actions > button {
+          flex: 1 1 auto;
+        }
+        .pagination #pagination {
+          flex-basis: 100%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .spinner,
+        .skeleton {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
-    <h1>Painel administrativo GA</h1>
-    <p><a href="/">Voltar ao chat</a></p>
-    <p id="status" role="status" aria-live="polite">Carregando sessão…</p>
-    <button id="retry" type="button" hidden>Tentar novamente</button>
-    <main id="panel" hidden>
-      <nav aria-label="Seções do painel">
-        <button type="button" data-page="mapping" aria-current="page">Mapeamento GA-N</button>
-        <button type="button" data-page="users">Usuários</button>
-        <button type="button" data-page="usage">Uso</button>
-        <button type="button" data-page="settings">Configurações</button>
-      </nav>
-      <section id="mapping">
-        <h2>Mapeamento GA-N</h2>
-        <p>Aplicado aos roles USER e ADMIN em até 60 s. Recarregue o chat após esse prazo.</p>
-        <p>
-          O nome GA-N é uma apresentação; os identificadores reais continuam disponíveis nas APIs do
-          chat.
-        </p>
-        <form id="models-form">
-          <div class="scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">Nome</th>
-                  <th scope="col">Rótulo</th>
-                  <th scope="col">Modelo real</th>
-                  <th scope="col">Padrão</th>
-                  <th scope="col">Ação</th>
-                </tr>
-              </thead>
-              <tbody id="models"></tbody>
-            </table>
+    <header class="header">
+      <div class="shell header-inner">
+        <a class="brand" href="/ga-admin/index.html" aria-label="GA Admin, início"
+          ><span class="brand-mark" aria-hidden="true">GA</span>GA Admin</a
+        >
+        <div class="account" id="account" hidden>
+          <span class="badge badge-admin">ADMIN</span
+          ><span id="account-name">Sessão autenticada</span>
+        </div>
+        <a class="button ghost" href="/">Voltar ao chat <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+    <div class="shell">
+      <div class="intro">
+        <p class="eyebrow">ADMINISTRAÇÃO</p>
+        <h1>Painel administrativo GA</h1>
+        <p class="description">Modelos, usuários e consumo em um só lugar.</p>
+      </div>
+      <div class="status-bar" id="status-bar" data-state="loading">
+        <span id="spinner" class="spinner" aria-hidden="true"></span>
+        <p id="status" role="status" aria-live="polite">Carregando sessão…</p>
+        <button id="retry" type="button" hidden>Tentar novamente</button>
+      </div>
+      <div id="loading" class="kpis" aria-hidden="true">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+      <main id="panel" hidden>
+        <nav aria-label="Seções do painel" role="tablist">
+          <button
+            id="tab-mapping"
+            type="button"
+            data-page="mapping"
+            role="tab"
+            aria-controls="mapping"
+            aria-selected="true"
+            tabindex="0"
+            aria-current="page"
+          >
+            Mapeamento GA-N
+          </button>
+          <button
+            id="tab-users"
+            type="button"
+            data-page="users"
+            role="tab"
+            aria-controls="users"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            Usuários
+          </button>
+          <button
+            id="tab-usage"
+            type="button"
+            data-page="usage"
+            role="tab"
+            aria-controls="usage"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            Uso
+          </button>
+          <button
+            id="tab-settings"
+            type="button"
+            data-page="settings"
+            role="tab"
+            aria-controls="settings"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            Configurações
+          </button>
+        </nav>
+        <section id="mapping" role="tabpanel" aria-labelledby="tab-mapping" tabindex="0">
+          <div class="card">
+            <div class="section-heading">
+              <h2>Mapeamento GA-N</h2>
+              <p class="description">Defina os nomes exibidos no chat e escolha o modelo padrão.</p>
+            </div>
+            <p class="hint notice">
+              Aplicado aos perfis <span class="badge">USER</span> e
+              <span class="badge badge-admin">ADMIN</span> em até 60 s. Recarregue o chat após esse
+              prazo.
+            </p>
+            <p class="hint">
+              O nome GA-N é uma apresentação; os identificadores reais continuam disponíveis nas
+              APIs do chat.
+            </p>
+            <form id="models-form">
+              <div class="scroll" role="region" aria-label="Mapeamento de modelos" tabindex="0">
+                <table>
+                  <thead>
+                    <tr>
+                      <th scope="col">Nome</th>
+                      <th scope="col">Rótulo</th>
+                      <th scope="col">Modelo real</th>
+                      <th scope="col">Padrão</th>
+                      <th scope="col">Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody id="models"></tbody>
+                </table>
+                <p id="models-empty" class="empty" hidden>
+                  Nenhum modelo configurado. Adicione uma linha para começar.
+                </p>
+              </div>
+              <div class="actions">
+                <button id="add" type="button">Adicionar linha</button
+                ><button class="primary" type="submit">Salvar mapeamento</button>
+              </div>
+            </form>
           </div>
-          <button id="add" type="button">Adicionar linha</button>
-          <button type="submit">Salvar mapeamento</button>
-        </form>
-      </section>
-      <section id="users" hidden>
-        <h2>Usuários</h2>
-        <div id="users-table" class="scroll"></div>
-        <button id="previous" type="button">Anterior</button>
-        <button id="next" type="button">Próxima</button>
-        <p id="pagination"></p>
-      </section>
-      <section id="usage" hidden>
-        <h2>Uso</h2>
-        <form id="usage-form">
-          <label
-            >Período em dias <input id="days" type="number" min="1" step="1" value="30" required
-          /></label>
-          <button type="submit">Atualizar uso</button>
-        </form>
-        <p>
-          Valores rawAmount e tokenValue são somas das transações registradas, não valores em reais.
-          Sem transações registradas, o consumo não aparece aqui.
-        </p>
-        <h3>Totais gerais</h3>
-        <div id="summary-table" class="scroll"></div>
-        <h3>Transações por usuário, modelo e tipo de token</h3>
-        <div id="usage-table" class="scroll"></div>
-        <h3>Mensagens enviadas por usuário no período</h3>
-        <div id="messages-table" class="scroll"></div>
-      </section>
-      <section id="settings" hidden>
-        <h2>Configurações</h2>
-        <form id="settings-form">
-          <label for="welcome">Mensagem de boas-vindas</label>
-          <textarea id="welcome" rows="4"></textarea>
-          <button type="submit">Salvar boas-vindas</button>
-        </form>
-        <p>Aplicado aos roles USER e ADMIN em até 60 s.</p>
-        <p>
-          ALLOW_REGISTRATION: <output id="registration"></output>. Somente leitura: variável de
-          ambiente, alterada apenas por redeploy.
-        </p>
-      </section>
-    </main>
+        </section>
+        <section id="users" role="tabpanel" aria-labelledby="tab-users" tabindex="0" hidden>
+          <div class="card">
+            <div class="section-heading">
+              <h2>Usuários</h2>
+              <p class="description">Consulte as contas e os perfis de acesso.</p>
+            </div>
+            <div
+              id="users-table"
+              class="scroll"
+              role="region"
+              aria-label="Lista de usuários"
+              tabindex="0"
+            ></div>
+            <div class="pagination">
+              <p id="pagination"></p>
+              <button id="previous" type="button">Anterior</button
+              ><button id="next" type="button">Próxima</button>
+            </div>
+          </div>
+        </section>
+        <section id="usage" role="tabpanel" aria-labelledby="tab-usage" tabindex="0" hidden>
+          <div class="section-heading">
+            <h2>Uso</h2>
+            <p class="description">Visão geral da plataforma e atividade no período selecionado.</p>
+          </div>
+          <div id="usage-kpis" class="kpis" aria-label="Indicadores de uso"></div>
+          <div class="card">
+            <h3>Período de análise</h3>
+            <form id="usage-form" class="filter">
+              <label
+                >Período em dias
+                <input id="days" type="number" min="1" step="1" value="30" required /></label
+              ><button type="submit">Atualizar uso</button>
+            </form>
+            <p class="hint">
+              Valores rawAmount e tokenValue são somas das transações registradas, não valores em
+              reais. Sem transações registradas, o consumo não aparece aqui.
+            </p>
+          </div>
+          <div class="card">
+            <div class="section-heading">
+              <h3>Totais gerais</h3>
+              <p class="description">Dados de todo o histórico.</p>
+            </div>
+            <div
+              id="summary-table"
+              class="scroll"
+              role="region"
+              aria-label="Totais gerais"
+              tabindex="0"
+            ></div>
+          </div>
+          <div class="card">
+            <div class="section-heading">
+              <h3>Transações por usuário, modelo e tipo de token</h3>
+            </div>
+            <div
+              id="usage-table"
+              class="scroll"
+              role="region"
+              aria-label="Transações no período"
+              tabindex="0"
+            ></div>
+          </div>
+          <div class="card">
+            <div class="section-heading"><h3>Mensagens enviadas por usuário no período</h3></div>
+            <div
+              id="messages-table"
+              class="scroll"
+              role="region"
+              aria-label="Mensagens no período"
+              tabindex="0"
+            ></div>
+          </div>
+        </section>
+        <section id="settings" role="tabpanel" aria-labelledby="tab-settings" tabindex="0" hidden>
+          <div class="card">
+            <div class="section-heading">
+              <h2>Configurações</h2>
+              <p class="description">Personalize a recepção dos usuários no chat.</p>
+            </div>
+            <form id="settings-form">
+              <label for="welcome">Mensagem de boas-vindas</label
+              ><textarea id="welcome" rows="4" aria-describedby="welcome-hint"></textarea>
+              <p id="welcome-hint" class="hint">Aplicado aos perfis USER e ADMIN em até 60 s.</p>
+              <div class="actions">
+                <button class="primary" type="submit">Salvar boas-vindas</button>
+              </div>
+            </form>
+          </div>
+          <div class="card">
+            <h3>Cadastro de novas contas</h3>
+            <p class="hint">
+              ALLOW_REGISTRATION: <output id="registration"></output>. Somente leitura: variável de
+              ambiente, alterada apenas por redeploy.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+    <div id="toasts" aria-label="Notificações" aria-live="polite" aria-atomic="false"></div>
     <script>
       'use strict';
       const element = (id) => document.getElementById(id);
       let token = '';
       let base = {};
       let offset = 0;
-      let ready = false;
       let busy = false;
+      let ready = false;
+      let currentPage = 'mapping';
       const limit = 50;
       const originalSpecs = new WeakMap();
+      const numbers = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 6 });
+      const numericColumns = new Set([
+        'users',
+        'conversations',
+        'messages',
+        'count',
+        'rawAmount',
+        'tokenValue',
+      ]);
+      let lastAction;
+      let lastSuccess;
+
+      function toast(message, kind) {
+        const notification = document.createElement('div');
+        notification.className = 'toast';
+        notification.dataset.kind = kind;
+        const text = document.createElement('p');
+        text.textContent = message;
+        const dismiss = document.createElement('button');
+        dismiss.type = 'button';
+        dismiss.className = 'ghost';
+        dismiss.textContent = '×';
+        dismiss.setAttribute('aria-label', 'Fechar notificação');
+        dismiss.addEventListener('click', () => notification.remove());
+        notification.append(text, dismiss);
+        element('toasts').replaceChildren(notification);
+      }
+      function updateModelsEmpty() {
+        element('models-empty').hidden = element('models').rows.length > 0;
+      }
+      function renderKPIs(summary, usage) {
+        const totals = usage.transactions.reduce(
+          (sum, row) => ({
+            count: sum.count + row.count,
+            rawAmount: sum.rawAmount + row.rawAmount,
+            tokenValue: sum.tokenValue + row.tokenValue,
+          }),
+          { count: 0, rawAmount: 0, tokenValue: 0 },
+        );
+        const messages = usage.messages.reduce((sum, row) => sum + row.count, 0);
+        const period = `Últimos ${numbers.format(Number(element('days').value))} dias`;
+        const cards = [
+          ['Usuários', summary.users, 'Total da plataforma'],
+          ['Conversas', summary.conversations, 'Total da plataforma'],
+          ['Mensagens', summary.messages, 'Total da plataforma'],
+          ['Transações', totals.count, period],
+          ['Volume (rawAmount)', totals.rawAmount, period],
+          ['Saldo registrado (tokenValue)', totals.tokenValue, period],
+          ['Mensagens enviadas', messages, period],
+        ];
+        element('usage-kpis').replaceChildren(
+          ...cards.map(([label, value, caption]) => {
+            const card = document.createElement('dl');
+            card.className = 'kpi';
+            const title = document.createElement('dt');
+            title.textContent = label;
+            const number = document.createElement('dd');
+            number.textContent = numbers.format(value);
+            const detail = document.createElement('small');
+            detail.textContent = caption;
+            const context = document.createElement('dd');
+            context.append(detail);
+            card.append(title, number, context);
+            return card;
+          }),
+        );
+      }
 
       function status(message) {
         element('status').textContent = message;
@@ -152,6 +837,8 @@
         const session = await response.json();
         if (!session.token) throw new Error('Faça login em /login primeiro');
         token = session.token;
+        element('account-name').textContent =
+          session.user?.email || session.user?.name || 'Sessão autenticada';
       }
       async function api(path, options = {}, retried = false) {
         const response = await fetch(path, {
@@ -174,24 +861,38 @@
         }
         return response.json();
       }
-      async function run(action) {
+      async function run(action, successMessage) {
         if (busy) return;
         busy = true;
+        lastAction = successMessage ? action : () => (ready ? showPage(currentPage) : initialize());
+        lastSuccess = successMessage;
+        element('status-bar').dataset.state = 'loading';
+        element('spinner').hidden = false;
+        element('panel').setAttribute('aria-busy', 'true');
         element('retry').hidden = true;
         document.querySelectorAll('button').forEach((button) => {
-          button.disabled = true;
+          if (button.getAttribute('role') === 'tab') button.setAttribute('aria-disabled', 'true');
+          else button.disabled = true;
         });
         status('Carregando…');
         try {
           await action();
           status('Pronto.');
+          element('status-bar').dataset.state = 'ready';
+          if (successMessage) toast(successMessage, 'success');
         } catch (error) {
           status(error.message);
+          element('status-bar').dataset.state = 'error';
+          if (successMessage) toast(error.message, 'error');
           element('retry').hidden = false;
         } finally {
           busy = false;
+          element('spinner').hidden = true;
+          element('loading').hidden = true;
+          element('panel').setAttribute('aria-busy', 'false');
           document.querySelectorAll('button').forEach((button) => {
             button.disabled = false;
+            if (button.getAttribute('role') === 'tab') button.removeAttribute('aria-disabled');
           });
           element('previous').disabled = offset === 0;
           element('next').disabled = !hasNext;
@@ -201,7 +902,10 @@
         const container = element(id);
         container.replaceChildren();
         if (!rows.length) {
-          container.textContent = 'Nenhum registro no período.';
+          const empty = document.createElement('p');
+          empty.className = 'empty';
+          empty.textContent = 'Nenhum registro no período.';
+          container.append(empty);
           return;
         }
         const table = document.createElement('table');
@@ -216,7 +920,20 @@
         rows.forEach((row) => {
           const tr = body.insertRow();
           columns.forEach(([, key]) => {
-            tr.insertCell().textContent = String(row[key] ?? '');
+            const cell = tr.insertCell();
+            const value = row[key];
+            if (key === 'role') {
+              const badge = document.createElement('span');
+              badge.className = value === 'ADMIN' ? 'badge badge-admin' : 'badge';
+              badge.textContent = String(value ?? '');
+              cell.append(badge);
+            } else if (numericColumns.has(key) && value != null) {
+              cell.textContent = numbers.format(Number(value));
+            } else if (key === 'createdAt' && value && !Number.isNaN(Date.parse(value))) {
+              cell.textContent = new Date(value).toLocaleDateString('pt-BR');
+            } else {
+              cell.textContent = String(value ?? '');
+            }
           });
         });
         container.append(table);
@@ -250,8 +967,13 @@
         remove.type = 'button';
         remove.textContent = 'Remover';
         remove.setAttribute('aria-label', `Remover ${spec.name}`);
-        remove.onclick = () => row.remove();
+        remove.className = 'ghost danger';
+        remove.addEventListener('click', () => {
+          row.remove();
+          updateModelsEmpty();
+        });
         row.insertCell().append(remove);
+        updateModelsEmpty();
       }
       async function roleConfig(role) {
         const result = await api(`/api/admin/config/role/${encodeURIComponent(role)}`, {
@@ -293,12 +1015,13 @@
           [
             ['Nome', 'name'],
             ['E-mail', 'email'],
-            ['Role', 'role'],
+            ['Perfil', 'role'],
             ['Criado em', 'createdAt'],
           ],
           data.users,
         );
-        element('pagination').textContent = `${data.total} usuários. Página ${offset / limit + 1}.`;
+        element('pagination').textContent =
+          `${numbers.format(data.total)} usuários. Página ${numbers.format(offset / limit + 1)}.`;
       }
       async function loadUsage() {
         const days = element('days').value;
@@ -306,6 +1029,7 @@
           api(`/api/ga-admin/usage?days=${encodeURIComponent(days)}`),
           api('/api/ga-admin/summary'),
         ]);
+        renderKPIs(summary, usage);
         table(
           'summary-table',
           [
@@ -334,13 +1058,15 @@
         );
         table('messages-table', [...identity, ['Mensagens', 'count']], usage.messages);
       }
-      let currentPage = 'mapping';
       async function showPage(page) {
         currentPage = page;
         for (const id of ['mapping', 'users', 'usage', 'settings'])
           element(id).hidden = id !== page;
         document.querySelectorAll('[data-page]').forEach((button) => {
-          if (button.dataset.page === page) button.setAttribute('aria-current', 'page');
+          const selected = button.dataset.page === page;
+          button.setAttribute('aria-selected', String(selected));
+          button.tabIndex = selected ? 0 : -1;
+          if (selected) button.setAttribute('aria-current', 'page');
           else button.removeAttribute('aria-current');
         });
         if (page === 'users') await loadUsers();
@@ -358,6 +1084,7 @@
         const specs = user.overrides?.modelSpecs ?? base.modelSpecs ?? base.config?.modelSpecs;
         element('models').replaceChildren();
         for (const spec of specs?.list ?? []) addRow(spec);
+        updateModelsEmpty();
         element('welcome').value =
           user.overrides?.interface?.customWelcome ??
           base.interfaceConfig?.customWelcome ??
@@ -365,12 +1092,28 @@
           '';
         element('registration').textContent = summary.allowRegistration ?? 'não definida';
         element('panel').hidden = false;
+        element('account').hidden = false;
         ready = true;
       }
       document.querySelectorAll('[data-page]').forEach((button) => {
-        button.onclick = () => run(() => showPage(button.dataset.page));
+        button.addEventListener('click', () => run(() => showPage(button.dataset.page)));
+        button.addEventListener('keydown', (event) => {
+          const tabs = [...document.querySelectorAll('[data-page]')];
+          const index = tabs.indexOf(button);
+          const targets = {
+            ArrowRight: (index + 1) % tabs.length,
+            ArrowLeft: (index + tabs.length - 1) % tabs.length,
+            Home: 0,
+            End: tabs.length - 1,
+          };
+          if (!(event.key in targets) || busy) return;
+          event.preventDefault();
+          const target = tabs[targets[event.key]];
+          target.focus();
+          target.click();
+        });
       });
-      element('add').onclick = () => {
+      element('add').addEventListener('click', () => {
         const names = new Set(
           [...element('models').rows].map((row) => row.querySelector('[data-key="name"]').value),
         );
@@ -382,8 +1125,8 @@
           iconURL: '/assets/logo.svg',
           preset: { endpoint: 'OpenRouter', model: '' },
         });
-      };
-      element('models-form').onsubmit = (event) => {
+      });
+      element('models-form').addEventListener('submit', (event) => {
         event.preventDefault();
         run(async () => {
           const list = [...element('models').rows].map((row) => {
@@ -417,32 +1160,36 @@
             ...overrides,
             modelSpecs: { enforce: true, prioritize: true, list },
           }));
-        });
-      };
-      element('settings-form').onsubmit = (event) => {
+        }, 'Mapeamento salvo com sucesso.');
+      });
+      element('settings-form').addEventListener('submit', (event) => {
         event.preventDefault();
-        run(() =>
-          saveRoles((overrides) => ({
-            ...overrides,
-            interface: { ...overrides.interface, customWelcome: element('welcome').value },
-          })),
+        run(
+          () =>
+            saveRoles((overrides) => ({
+              ...overrides,
+              interface: { ...overrides.interface, customWelcome: element('welcome').value },
+            })),
+          'Mensagem de boas-vindas salva com sucesso.',
         );
-      };
-      element('usage-form').onsubmit = (event) => {
+      });
+      element('usage-form').addEventListener('submit', (event) => {
         event.preventDefault();
         run(loadUsage);
-      };
-      element('previous').onclick = () =>
+      });
+      element('previous').addEventListener('click', () =>
         run(async () => {
           offset = Math.max(0, offset - limit);
           await loadUsers();
-        });
-      element('next').onclick = () =>
+        }),
+      );
+      element('next').addEventListener('click', () =>
         run(async () => {
           offset += limit;
           await loadUsers();
-        });
-      element('retry').onclick = () => run(() => (ready ? showPage(currentPage) : initialize()));
+        }),
+      );
+      element('retry').addEventListener('click', () => run(lastAction, lastSuccess));
       run(initialize);
     </script>
   </body>
